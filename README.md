@@ -1,10 +1,10 @@
 # googletasks
 google task api based "google/apiclient": "2.7"
 
-#instalation
+######instalation
     `composer install`
 
-#config
+######config
 rename .config.example.json to .config.json and enter your credentials.
 you can generate the credentials here: https://console.cloud.google.com
 
