@@ -23,7 +23,9 @@ abstract class GoogleHelper
         $tokenPath = 'token.json';
         if (file_exists($tokenPath)) {
             $accessToken = json_decode(file_get_contents($tokenPath), true);
-            $client->setAccessToken($accessToken);
+            if($accessToken) {
+                $client->setAccessToken($accessToken);
+            }
         }
 
         // If there is no previous token or it's expired.
