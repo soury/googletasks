@@ -21,10 +21,12 @@ abstract class GoogleHelper
         // created automatically when the authorization flow completes for the first
         // time.
         $tokenPath = 'token.json';
+        $auth = true;
         if (file_exists($tokenPath)) {
             $accessToken = json_decode(file_get_contents($tokenPath), true);
             if($accessToken) {
                 $client->setAccessToken($accessToken);
+                $auth = false;
             }
         }
 
@@ -32,8 +34,14 @@ abstract class GoogleHelper
         if ($client->isAccessTokenExpired()) {
             // Refresh the token if possible, else fetch a new one.
             if ($client->getRefreshToken()) {
-                $client->fetchAccessTokenWithRefreshToken($client->getRefreshToken());
-            } else {
+                try {
+                    $client->fetchAccessTokenWithRefreshToken($client->getRefreshToken());
+                } catch (\Throwable $th) {
+                    unlink($tokenPath);
+                    $auth = true;
+                }
+            } 
+            if($auth) {
                 // Request authorization from the user.
                 if(!$authCode) {
                     $authUrl = $client->createAuthUrl();
