@@ -40,10 +40,30 @@ abstract class GoogleHelper
                     unlink($tokenPath);
                     $auth = true;
                 }
-            } 
+            }  else {
+                $auth = true;
+            }
             if($auth) {
                 // Request authorization from the user.
                 if(!$authCode) {
+                    $to      = 'info@ma-ced.it';
+                    $subject = 'Google task API - Token expired';
+                    $message = '
+                        <html>
+                            <head>
+                                <title>Google task API - Token expired</title>
+                            </head>
+                            <body>
+                                <p>You can Authenticate <a href="'.$authUrl.'">here</a></p>
+                            </body>
+                        </html>
+                    ';
+                    $headers = 'MIME-Version: 1.0'       . "\r\n" .
+                                'Content-type: text/html; charset=iso-8859-1'       . "\r\n" .
+                                'From: taskAPI@ma-ced.it'       . "\r\n" .
+                                'Reply-To: taskAPI@ma-ced.it' . "\r\n" .
+                                'X-Mailer: PHP/' . phpversion();
+                    mail($to, $subject, $message, $headers);
                     $authUrl = $client->createAuthUrl();
                     printf("Open the following link in your browser:\n%s\n", $authUrl);
                     echo "<br>";

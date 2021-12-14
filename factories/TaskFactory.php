@@ -11,8 +11,15 @@ abstract class TaskFactory
     {
         $response['status_code_header'] = 'HTTP/1.1 404 Not Found';
         $response['body'] = null;
-        return $response;
-    }
+       return $response;
+    } 
+
+    private static function tokenEpiredResponse()
+    {
+        $response['status_code_header'] = 'HTTP/1.1 401 Token Expired';
+        $response['body'] = json_encode(["result" => false, "message" => "Token Expired"]);;
+       return $response;
+    } 
 
     public static function getListTaskLists($maxResults = 10)
     {
