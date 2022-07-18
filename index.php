@@ -1,11 +1,8 @@
 <?php
-header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
-header("Cache-Control: post-check=0, pre-check=0", false);
+ini_set('max_execution_time', 0);
+ini_set("log_errors", 1);
+ini_set("error_log", "php-error.log");
 
-@header('Access-Control-Allow-Origin: *'); 
-@header('Access-Control-Allow-Methods: GET, PUT, POST, DELETE, OPTIONS');
-
-header("Pragma: no-cache");
 require_once './vendor/autoload.php';
 use soury\googletasks\helpers\GoogleHelper;
 $client = GoogleHelper::getClient();
@@ -20,7 +17,7 @@ try{
       $response = TaskFactory::getListTaskLists(0);
       break;
     case 'Lista':
-      $response = TaskFactory::getListTaskLists($_GET['id_lista']);
+      $response = TaskFactory::getListTaskList($_GET['id_lista']);
       break;
     case 'CreaLista':
       $postData = $_GET;
@@ -35,6 +32,9 @@ try{
       break;
     case 'EliminaLista':
       $response = TaskFactory::deleteTaskList($_GET['id_lista']);
+      break;
+    case 'PuliziaListe':
+      $response = TaskFactory::deleteEmptyTaskLists();
       break;
     case 'ListaTasks':
       $response = TaskFactory::getTask($_GET['id_lista']);
@@ -67,7 +67,7 @@ try{
   if($th->getCode() == 401) {
     $client = GoogleHelper::getClient();
     $authUrl = $client->createAuthUrl();
-    $to      = 'info@ma-ced.it';
+    $to      = 'taskAPI@ma-ced.it';
     $subject = 'Google task API - Token expired';
     $message = '
         <html>

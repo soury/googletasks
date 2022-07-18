@@ -1,8 +1,9 @@
 <?php
 require_once './vendor/autoload.php';
-
+ini_set("log_errors", 1);
+ini_set("error_log", "php-error.log");
 use soury\googletasks\factories\TaskFactory;
-
+use soury\googletasks\helpers\GoogleHelper;
 
 header("Access-Control-Allow-Origin: *");
 header("Content-Type: application/json; charset=UTF-8");
@@ -97,7 +98,7 @@ try {
   if($th->getCode() == 401) {
     $client = GoogleHelper::getClient();
     $authUrl = $client->createAuthUrl();
-    $to      = 'info@ma-ced.it';
+    $to      = 'taskAPI@ma-ced.it';
     $subject = 'Google task API - Token expired';
     $message = '
         <html>
@@ -115,7 +116,12 @@ try {
                 'Reply-To: taskAPI@ma-ced.it' . "\r\n" .
                 'X-Mailer: PHP/' . phpversion();
     mail($to, $subject, $message, $headers);
+    mail("sourazou@hotmail.com", $subject, '<p>'.($th->getMessage()).'</p><div>stack error: '.$th.'</div>', $headers);
+    throw $th;
     $response = TaskFactory::tokenEpiredResponse();
+  } else {
+    $response['status_code_header'] = 'HTTP/1.1 '.$th->getCode();
+    $response['body'] = json_encode(["result" => false, "message" => $th->getMessage()]);
   }
 }
 

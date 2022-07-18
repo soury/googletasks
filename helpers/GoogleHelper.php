@@ -29,42 +29,37 @@ abstract class GoogleHelper
                 $auth = false;
             }
         }
-
+        if (file_exists('fetchAccessTokenWithRefreshToken.log')) {
+            if($authCode) {
+                unlink('fetchAccessTokenWithRefreshToken.log');
+            } else {
+                return 'fetchAccessTokenWithRefreshToken';
+            }
+        }
         // If there is no previous token or it's expired.
         if ($client->isAccessTokenExpired()) {
             // Refresh the token if possible, else fetch a new one.
+            file_put_contents('token_logs.log', "AccessTokenExpired: ".(date('d-m-Y H:i'))." <br />\n" , FILE_APPEND | LOCK_EX);
             if ($client->getRefreshToken()) {
                 try {
+                    file_put_contents('fetchAccessTokenWithRefreshToken.log', "fetchAccessTokenWithRefreshToken: ".(date('d-m-Y H:i'))." <br />\n" , FILE_APPEND | LOCK_EX);
                     $client->fetchAccessTokenWithRefreshToken($client->getRefreshToken());
+                    if (file_exists('fetchAccessTokenWithRefreshToken.log')) {
+                        unlink('fetchAccessTokenWithRefreshToken.log');
+                    }
                 } catch (\Throwable $th) {
+                    file_put_contents('token_logs.log', "fetchAccessTokenWithRefreshToken Faild: ".(date('d-m-Y H:i'))." <br />\n" , FILE_APPEND | LOCK_EX);
                     unlink($tokenPath);
                     $auth = true;
                 }
-            }  else {
+            } else {
                 $auth = true;
             }
             if($auth) {
                 // Request authorization from the user.
                 if(!$authCode) {
-                    $to      = 'info@ma-ced.it';
-                    $subject = 'Google task API - Token expired';
-                    $message = '
-                        <html>
-                            <head>
-                                <title>Google task API - Token expired</title>
-                            </head>
-                            <body>
-                                <p>You can Authenticate <a href="'.$authUrl.'">here</a></p>
-                            </body>
-                        </html>
-                    ';
-                    $headers = 'MIME-Version: 1.0'       . "\r\n" .
-                                'Content-type: text/html; charset=iso-8859-1'       . "\r\n" .
-                                'From: taskAPI@ma-ced.it'       . "\r\n" .
-                                'Reply-To: taskAPI@ma-ced.it' . "\r\n" .
-                                'X-Mailer: PHP/' . phpversion();
-                    mail($to, $subject, $message, $headers);
                     $authUrl = $client->createAuthUrl();
+                    file_put_contents('token_logs.log', "!authCode: ".(date('d-m-Y H:i'))." <br />\n" , FILE_APPEND | LOCK_EX);
                     printf("Open the following link in your browser:\n%s\n", $authUrl);
                     echo "<br>";
                     print 'Enter verification code: ';
@@ -75,7 +70,7 @@ abstract class GoogleHelper
                     echo $authCode;
                     $accessToken = $client->fetchAccessTokenWithAuthCode($authCode);
                     $client->setAccessToken($accessToken);
-
+                    file_put_contents('token_logs.log', "fetchAccessTokenWithAuthCode Faild: ".(date('d-m-Y H:i'))." <br />\n" , FILE_APPEND | LOCK_EX);
                     // Check to see if there was an error.
                     if (array_key_exists('error', $accessToken)) {
                         throw new Exception(join(', ', $accessToken));
@@ -87,6 +82,7 @@ abstract class GoogleHelper
                 mkdir(dirname($tokenPath), 0700, true);
             }
             $data = $client->getAccessToken();
+            file_put_contents('token_logs.log', "data Faild: ".(date('d-m-Y H:i')).": ".(json_encode($data))." <br />\n" , FILE_APPEND | LOCK_EX);
             if($data) {
                 file_put_contents($tokenPath, json_encode($data));
             }

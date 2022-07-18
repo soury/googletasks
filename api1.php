@@ -1,25 +1,14 @@
 <?php
 require_once './vendor/autoload.php';
 use soury\googletasks\factories\TaskFactory;
+use soury\googletasks\helpers\GoogleHelper;
+
+ini_set("log_errors", 1);
+ini_set("error_log", "php-error.log");
 
 header("Access-Control-Allow-Origin: *");
 header("Content-Type: application/json; charset=UTF-8");
 header("Access-Control-Allow-Methods: OPTIONS,GET,POST,PUT,DELETE");
-
-@header('Access-Control-Allow-Origin: *'); 
-@header('Access-Control-Allow-Methods: GET, PUT, POST, DELETE, OPTIONS');
-
-header("Access-Control-Max-Age: 3600");
-header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With");
-header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
-header("Cache-Control: post-check=0, pre-check=0", false);
-header("Pragma: no-cache");
-ini_set('max_execution_time', 0);
-$uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
-$uri = explode( '/', $uri );
-$requestMethod = $_SERVER["REQUEST_METHOD"];
-$firstId = null;
-$lastId = $uri[count($uri) - 1];
 $route = null;
 
 if($lastId == 'task-lists' || $lastId == 'tasks') {
@@ -27,7 +16,6 @@ if($lastId == 'task-lists' || $lastId == 'tasks') {
   $lastId = null;
 } else {
   if($uri[count($uri) - 2] !== 'task-lists' && $uri[count($uri) - 2] !== 'tasks') {
-    $firstId = $uri[count($uri) - 2];
     $route = $uri[count($uri) - 3];
   } else {
     $route = $uri[count($uri) - 2];
@@ -76,6 +64,7 @@ try{
                 } else if($postData && isset($postData['clearTask'])) {
                     $response = TaskFactory::clearListTasks(null, $postData);
                 } else if ($postData && isset($postData['title'])) {
+                    $postData['listTitle'] = $postData['title'];
                     $response = TaskFactory::getTask(null, null, $postData);
                 } else {
                     $response = TaskFactory::getTaskLists(null, $postData);
@@ -96,7 +85,7 @@ try{
     if($th->getCode() == 401) {
         $client = GoogleHelper::getClient();
         $authUrl = $client->createAuthUrl();
-        $to      = 'info@ma-ced.it';
+        $to      = 'taskAPI@ma-ced.it';
         $subject = 'Google task API - Token expired';
         $message = '
             <html>

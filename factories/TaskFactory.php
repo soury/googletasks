@@ -24,6 +24,7 @@ abstract class TaskFactory
     public static function getListTaskLists($maxResults = 10)
     {
         $client = GoogleHelper::getClient();
+        if(!$client === 'fetchAccessTokenWithRefreshToken') return TaskFactory::tokenEpiredResponse();
         $service = new \Google_Service_Tasks($client);
         $optParams = array(
             'maxResults' => $maxResults,
@@ -45,8 +46,27 @@ abstract class TaskFactory
         return $response;
     }
 
+    public static function deleteEmptyTaskLists() {
+        $client = GoogleHelper::getClient();
+        if(!$client === 'fetchAccessTokenWithRefreshToken') return TaskFactory::tokenEpiredResponse();
+        $service = new \Google_Service_Tasks($client);
+        $lists = $service->tasklists->listTasklists(['maxResults' => 0]);
+        $results = ["deleted" => []];
+        foreach ($lists->getItems() as $list) {
+            $tasks = $service->tasks->listTasks($list->getId());
+            if(count($tasks->getItems()) == 0) {
+                $results["deleted"][] = $list->getTitle();
+                $service->tasklists->delete($list->getId());
+            }
+        }
+        $response['status_code_header'] = 'HTTP/1.1 200 OK';
+        $response['body'] = json_encode($results);
+        return $response;
+    }
+
     public static function getListByTitle($title) {
         $client = GoogleHelper::getClient();
+        if(!$client === 'fetchAccessTokenWithRefreshToken') return TaskFactory::tokenEpiredResponse();
         $service = new \Google_Service_Tasks($client);
         $results = $service->tasklists->listTasklists(['maxResults'=> 0 ]);
         foreach ($results->getItems() as $tasklist) {
@@ -74,6 +94,7 @@ abstract class TaskFactory
             return $response;
         }
         $client = GoogleHelper::getClient();
+        if(!$client === 'fetchAccessTokenWithRefreshToken') return TaskFactory::tokenEpiredResponse();
         $service = new \Google_Service_Tasks($client);
         $results = $service->tasklists->get($listId);
         $response['body'] = json_encode(new Task([
@@ -81,12 +102,14 @@ abstract class TaskFactory
             'etag' => $results->getEtag(),
             'title' => $results->getTitle()
         ]));
+        $response['status_code_header'] = 'HTTP/1.1 200 OK';
         return $response;
     }
 
     public static function createTaskList($data = [])
     {
         $client = GoogleHelper::getClient();
+        if(!$client === 'fetchAccessTokenWithRefreshToken') return TaskFactory::tokenEpiredResponse();
         $service = new \Google_Service_Tasks($client);
         $postData = new \Google_Service_Tasks_TaskList($data);
         $results = $service->tasklists->insert($postData);
@@ -113,6 +136,7 @@ abstract class TaskFactory
             return $response;
         }
         $client = GoogleHelper::getClient();
+        if(!$client === 'fetchAccessTokenWithRefreshToken') return TaskFactory::tokenEpiredResponse();
         $service = new \Google_Service_Tasks($client);
         $listId = $data['id'];
         $postData = new \Google_Service_Tasks_TaskList($data);
@@ -139,6 +163,7 @@ abstract class TaskFactory
             return $response;
         }
         $client = GoogleHelper::getClient();
+        if(!$client === 'fetchAccessTokenWithRefreshToken') return TaskFactory::tokenEpiredResponse();
         $service = new \Google_Service_Tasks($client);
         $results = $service->tasklists->delete($listId);
         $response['status_code_header'] = 'HTTP/1.1 200 OK';
@@ -159,6 +184,7 @@ abstract class TaskFactory
             return $response;
         }
         $client = GoogleHelper::getClient();
+        if(!$client === 'fetchAccessTokenWithRefreshToken') return TaskFactory::tokenEpiredResponse();
         $service = new \Google_Service_Tasks($client);
         $results = $service->tasks->listTasks($listId);
         
@@ -185,6 +211,7 @@ abstract class TaskFactory
 
     public static function getTaskByTitle($listId, $title) {
         $client = GoogleHelper::getClient();
+        if(!$client === 'fetchAccessTokenWithRefreshToken') return TaskFactory::tokenEpiredResponse();
         $service = new \Google_Service_Tasks($client);
         $results = $service->tasks->listTasks($listId);
         foreach ($results->getItems() as $task) {
@@ -223,6 +250,7 @@ abstract class TaskFactory
             return $response;
         }
         $client = GoogleHelper::getClient();
+        if(!$client === 'fetchAccessTokenWithRefreshToken') return TaskFactory::tokenEpiredResponse();
         $service = new \Google_Service_Tasks($client);
         $results = $service->tasks->get($listId, $taskId);
 
@@ -253,6 +281,7 @@ abstract class TaskFactory
             return $response;
         }
         $client = GoogleHelper::getClient();
+        if(!$client === 'fetchAccessTokenWithRefreshToken') return TaskFactory::tokenEpiredResponse();
         $service = new \Google_Service_Tasks($client);
         $postData = new \Google_Service_Tasks_Task($data);
         $results = $service->tasks->insert($listId, $postData);
@@ -295,6 +324,7 @@ abstract class TaskFactory
             return $response;
         }
         $client = GoogleHelper::getClient();
+        if(!$client === 'fetchAccessTokenWithRefreshToken') return TaskFactory::tokenEpiredResponse();
         $service = new \Google_Service_Tasks($client);
         $postData = new \Google_Service_Tasks_Task($data);
         $results = $service->tasks->update($listId, $taskId, $postData);
@@ -336,6 +366,7 @@ abstract class TaskFactory
             return $response;
         }
         $client = GoogleHelper::getClient();
+        if(!$client === 'fetchAccessTokenWithRefreshToken') return TaskFactory::tokenEpiredResponse();
         $service = new \Google_Service_Tasks($client);
         $results = $service->tasks->delete($listId, $taskId);
         $response['status_code_header'] = 'HTTP/1.1 200 OK';
@@ -355,6 +386,7 @@ abstract class TaskFactory
             return $response;
         }
         $client = GoogleHelper::getClient();
+        if(!$client === 'fetchAccessTokenWithRefreshToken') return TaskFactory::tokenEpiredResponse();
         $service = new \Google_Service_Tasks($client);
         $results = $service->tasks->clear($listId);
         $response['status_code_header'] = 'HTTP/1.1 200 OK';
