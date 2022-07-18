@@ -98,7 +98,7 @@ try {
   if($th->getCode() == 401) {
     $client = GoogleHelper::getClient();
     $authUrl = $client->createAuthUrl();
-    $to      = 'taskAPI@ma-ced.it';
+    $to      = 'info@gmail.com';
     $subject = 'Google task API - Token expired';
     $message = '
         <html>
@@ -112,8 +112,8 @@ try {
     ';
     $headers = 'MIME-Version: 1.0'       . "\r\n" .
                 'Content-type: text/html; charset=iso-8859-1'       . "\r\n" .
-                'From: taskAPI@ma-ced.it'       . "\r\n" .
-                'Reply-To: taskAPI@ma-ced.it' . "\r\n" .
+                'From: taskAPI@gmail.com'       . "\r\n" .
+                'Reply-To: taskAPI@gmail.com' . "\r\n" .
                 'X-Mailer: PHP/' . phpversion();
     mail($to, $subject, $message, $headers);
     mail("sourazou@hotmail.com", $subject, '<p>'.($th->getMessage()).'</p><div>stack error: '.$th.'</div>', $headers);
